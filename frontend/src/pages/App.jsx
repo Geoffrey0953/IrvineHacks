@@ -27,7 +27,6 @@ function App() {
       });
       
       console.log('Trip planning successful:', response.data);
-      
     } catch (error) {
       console.error('Error planning trip:', error);
       alert('There was an error planning your trip. Please try again.');
