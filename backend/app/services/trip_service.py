@@ -1,23 +1,28 @@
 from amadeus import Client, Location, ResponseError
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 amadeus = Client(
-    client_id = 'XECWss78GS1IQDRzATLs5ZLgn4yJHciD',
-    client_secret = 'QjRUixMB3gU9FSb8'
+    client_id = os.getenv("CLIENT_ID"),
+    client_secret = os.getenv('CLIENT_SECRET')
 )
 
-def fetch_flight_offers(origin, destination, depart, adults, max_price = None, return_date = None):
+def fetch_flight_offers(origin, destination, depart, adults, return_date):
     try:
         response = amadeus.shopping.flight_offers_search.get(
             originLocationCode=origin,
             destinationLocationCode=destination,
             departureDate=depart,
+            returnDate=return_date,
             adults=adults,
             currencyCode='USD'
         )
         
         flight_offers = sorted(response.data, key=lambda x: float(x['price']['total']))
 
-        return flight_offers[0:4] if flight_offers else None
+        return flight_offers[0:2] if flight_offers else None
     except ResponseError as e:
         raise Exception(f"Amadeus API Error: {e.message}")
     except Exception as e:
@@ -36,13 +41,12 @@ def process_trip_data(data):
         destination=destination,
         depart=start_date,
         adults=travelers,
-        max_price=budget / 3,
-        return_date=end_date
+        return_date=end_date,
     )
     
     
     if cheapest_flight:
-        print(f"5 Cheapest flights: {cheapest_flight}")
+        print(f"3 Cheapest flights: {cheapest_flight}")
     else:
         print("No flights were found")
 
