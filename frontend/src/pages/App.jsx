@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
-<<<<<<< HEAD
 
-=======
->>>>>>> 99493bdec84d37d86fe052b7bf3ec82677a4b9de
+
+
 
 function App() {
   const [startLocation, setStartLocation] = useState('');
@@ -14,25 +13,14 @@ function App() {
   const [endDate, setEndDate] = useState('');
 
   const handleSubmit = async () => {
-<<<<<<< HEAD
-    // Validate that all fields are filled
-=======
->>>>>>> 99493bdec84d37d86fe052b7bf3ec82677a4b9de
+
     if (!startLocation || !destination || !budget || !travelers || !startDate || !endDate) {
       alert('Please fill in all fields');
       return;
     }
 
     try {
-<<<<<<< HEAD
-      const response = await axios.post('http://127.0.0.1:5000/', {
-        startLocation,
-        destination,
-        budget,
-        travelers,
-        startDate,
-        endDate
-=======
+
       const response = await axios.post('http://127.0.0.1:5000/plan_trip', {
         start_location: startLocation,
         destination: destination,
@@ -40,7 +28,6 @@ function App() {
         travelers: Number(travelers),
         start_date: startDate,
         end_date: endDate
->>>>>>> 99493bdec84d37d86fe052b7bf3ec82677a4b9de
       });
       
       console.log('Trip planning successful:', response.data);
