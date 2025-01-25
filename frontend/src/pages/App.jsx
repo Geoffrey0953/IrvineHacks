@@ -1,9 +1,6 @@
 import { useState } from 'react';
-<<<<<<< HEAD
 import axios from 'axios';
-import Dropdown from '../components/Dropdown';
-=======
->>>>>>> refs/remotes/origin/main
+
 
 function App() {
   const [startLocation, setStartLocation] = useState('');
@@ -15,7 +12,7 @@ function App() {
 
   const handleSubmit = async () => {
     // Validate that all fields are filled
-    if (!startLocation || !destination || !budget || !travelers || !date) {
+    if (!startLocation || !destination || !budget || !travelers || !startDate || !endDate) {
       alert('Please fill in all fields');
       return;
     }
@@ -26,7 +23,8 @@ function App() {
         destination,
         budget,
         travelers,
-        date
+        startDate,
+        endDate
       });
       
       // Handle successful response
