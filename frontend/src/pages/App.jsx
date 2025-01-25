@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import Dropdown from '../components/Dropdown';
 
 function App() {
@@ -28,6 +29,33 @@ function App() {
     { value: 'london', label: 'London' },
     { value: 'tokyo', label: 'Tokyo' }
   ];
+
+  const handleSubmit = async () => {
+    // Validate that all fields are filled
+    if (!startLocation || !destination || !budget || !travelers || !date) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/', {
+        startLocation,
+        destination,
+        budget,
+        travelers,
+        date
+      });
+      
+      // Handle successful response
+      console.log('Trip planning successful:', response.data);
+      // You can add additional handling here, like showing a success message
+      // or redirecting to a results page
+      
+    } catch (error) {
+      console.error('Error planning trip:', error);
+      alert('There was an error planning your trip. Please try again.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-100 to-blue-100 p-8">
@@ -78,7 +106,10 @@ function App() {
             />
           </div>
 
-          <button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 mt-6">
+          <button 
+            onClick={handleSubmit}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md transition duration-300 mt-6"
+          >
             Plan My Trip
           </button>
         </div>
