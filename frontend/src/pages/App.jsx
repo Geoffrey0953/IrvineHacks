@@ -1,9 +1,5 @@
 import { useState } from 'react';
-<<<<<<< HEAD
 import axios from 'axios';
-import Dropdown from '../components/Dropdown';
-=======
->>>>>>> refs/remotes/origin/main
 
 function App() {
   const [startLocation, setStartLocation] = useState('');
@@ -14,25 +10,22 @@ function App() {
   const [endDate, setEndDate] = useState('');
 
   const handleSubmit = async () => {
-    // Validate that all fields are filled
-    if (!startLocation || !destination || !budget || !travelers || !date) {
+    if (!startLocation || !destination || !budget || !travelers || !startDate || !endDate) {
       alert('Please fill in all fields');
       return;
     }
 
     try {
-      const response = await axios.post('http://127.0.0.1:5000/', {
-        startLocation,
-        destination,
-        budget,
-        travelers,
-        date
+      const response = await axios.post('http://127.0.0.1:5000/plan_trip', {
+        start_location: startLocation,
+        destination: destination,
+        budget: Number(budget),
+        travelers: Number(travelers),
+        start_date: startDate,
+        end_date: endDate
       });
       
-      // Handle successful response
       console.log('Trip planning successful:', response.data);
-      // You can add additional handling here, like showing a success message
-      // or redirecting to a results page
       
     } catch (error) {
       console.error('Error planning trip:', error);
