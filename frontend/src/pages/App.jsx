@@ -1,34 +1,17 @@
 import { useState } from 'react';
+<<<<<<< HEAD
 import axios from 'axios';
 import Dropdown from '../components/Dropdown';
+=======
+>>>>>>> refs/remotes/origin/main
 
 function App() {
   const [startLocation, setStartLocation] = useState('');
   const [destination, setDestination] = useState('');
   const [budget, setBudget] = useState('');
   const [travelers, setTravelers] = useState('');
-  const [date, setDate] = useState('');
-
-  const budgetOptions = [
-    { value: 'budget', label: '$0 - $1000' },
-    { value: 'moderate', label: '$1000 - $3000' },
-    { value: 'luxury', label: '$3000+' }
-  ];
-
-  const travelerOptions = Array.from({ length: 8 }, (_, i) => {
-    const num = i + 1;
-    return {
-      value: num,
-      label: `${num} ${num === 1 ? 'person' : 'people'}`
-    };
-  });
-
-  // Example locations - replace with your actual location options
-  const locationOptions = [
-    { value: 'nyc', label: 'New York City' },
-    { value: 'london', label: 'London' },
-    { value: 'tokyo', label: 'Tokyo' }
-  ];
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const handleSubmit = async () => {
     // Validate that all fields are filled
@@ -64,46 +47,77 @@ function App() {
         <p className="text-gray-600 mb-8">Let us help you plan your perfect journey</p>
         
         <div className="space-y-4">
-          <Dropdown
-            label="Starting Location"
-            value={startLocation}
-            onChange={(e) => setStartLocation(e.target.value)}
-            options={locationOptions}
-            placeholder="Select starting point"
-          />
+          <div className="flex flex-col">
+            <label className="text-gray-700 mb-2">Starting Location</label>
+            <input 
+              type="text" 
+              value={startLocation}
+              onChange={(e) => setStartLocation(e.target.value)}
+              placeholder="Enter starting point"
+              className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
+            />
+          </div>
 
-          <Dropdown
-            label="Destination"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value)}
-            options={locationOptions}
-            placeholder="Select destination"
-          />
+          <div className="flex flex-col">
+            <label className="text-gray-700 mb-2">Destination</label>
+            <input 
+              type="text" 
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              placeholder="Enter destination"
+              className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
+            />
+          </div>
 
-          <Dropdown
-            label="Budget Range"
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
-            options={budgetOptions}
-            placeholder="Select budget range"
-          />
+          <div className="flex flex-col">
+            <label className="text-gray-700 mb-2">Budget</label>
+            <input 
+              type="number" 
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              placeholder="Enter your budget"
+              min="0"
+              className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
+            />
+          </div>
 
-          <Dropdown
-            label="Number of Travelers"
-            value={travelers}
-            onChange={(e) => setTravelers(e.target.value)}
-            options={travelerOptions}
-            placeholder="Select number of travelers"
-          />
+          <div className="flex flex-col">
+            <label className="text-gray-700 mb-2">Number of Travelers</label>
+            <input 
+              type="number" 
+              value={travelers}
+              onChange={(e) => setTravelers(e.target.value)}
+              placeholder="Enter number of travelers"
+              min="1"
+              className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
+            />
+          </div>
 
           <div className="flex flex-col">
             <label className="text-gray-700 mb-2">Travel Dates</label>
-            <input 
-              type="date" 
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
-            />
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="text-sm text-gray-600 mb-1 block">From</label>
+                <input 
+                  type="date" 
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
+                  placeholder="Start date"
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-sm text-gray-600 mb-1 block">To</label>
+                <input 
+                  type="date" 
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500"
+                  min={startDate}
+                  placeholder="End date"
+                />
+              </div>
+            </div>
           </div>
 
           <button 
