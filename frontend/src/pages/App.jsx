@@ -47,9 +47,6 @@ function App() {
       </video>
 
       <div className="min-h-screen relative">
-        {/* Overlay */}
-        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-yellow-50/60 via-orange-50/50 to-amber-50/60 z-10" />
-
         <div className="relative z-20">
           <div className="p-4">
             <div className="max-w-7xl mx-auto">
@@ -66,7 +63,7 @@ function App() {
               </div>
 
               {/* Form */}
-              <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-orange-100">
+              <div className="bg-white/50 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-orange-100">
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                     {/* Starting Location */}
