@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Autocomplete = ({ suggestions }) => {
+const Autocomplete = ({ suggestions, onSelection }) => {
   const [inputValue, setInputValue] = useState("");
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
@@ -12,9 +12,7 @@ const Autocomplete = ({ suggestions }) => {
 
     if (value) {
       const filtered = suggestions
-        .filter((item) =>
-          item.toLowerCase().startsWith(value.toLowerCase())
-        )
+        .filter((item) => item.toLowerCase().startsWith(value.toLowerCase()))
         .slice(0, 5); // Limit to 5 suggestions
       setFilteredSuggestions(filtered);
       setShowSuggestions(true);
@@ -27,6 +25,7 @@ const Autocomplete = ({ suggestions }) => {
     setInputValue(suggestion);
     setShowSuggestions(false);
     setActiveSuggestionIndex(-1);
+    onSelection(suggestion); // Notify parent component of selection
   };
 
   const handleKeyDown = (e) => {
@@ -35,22 +34,21 @@ const Autocomplete = ({ suggestions }) => {
         prev < filteredSuggestions.length - 1 ? prev + 1 : prev
       );
     } else if (e.key === "ArrowUp") {
-      setActiveSuggestionIndex((prev) =>
-        prev > 0 ? prev - 1 : prev
-      );
+      setActiveSuggestionIndex((prev) => (prev > 0 ? prev - 1 : prev));
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (activeSuggestionIndex >= 0) {
-        setInputValue(filteredSuggestions[activeSuggestionIndex]);
+        const selectedSuggestion = filteredSuggestions[activeSuggestionIndex];
+        setInputValue(selectedSuggestion);
         setShowSuggestions(false);
         setActiveSuggestionIndex(-1);
+        onSelection(selectedSuggestion); // Notify parent component
       }
     }
   };
 
   const handleBlur = () => {
-    // Delay hiding to allow clicks to register
-    setTimeout(() => setShowSuggestions(false), 150);
+    setTimeout(() => setShowSuggestions(false), 150); // Delay hiding suggestions
   };
 
   return (
@@ -85,5 +83,3 @@ const Autocomplete = ({ suggestions }) => {
 };
 
 export default Autocomplete;
-
-
