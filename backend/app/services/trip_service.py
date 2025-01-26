@@ -113,10 +113,14 @@ def fetch_hotels_by_city(city, check_in_date, check_out_date, adults, radius=10)
         print(f"Error fetching hotels: {e}")
         return None
 
-def AWS_bedrock_sonnet(destination, budget, num_of_days, num_of_ppl):
+def AWS_bedrock_sonnet(destination, budget, num_of_days, num_of_ppl, flight_cost, lodging_cost, starting_airport, destination_airport, starting_terminal, destination_terminal, departure_time, arrival_time, hotel_name, return_starting_airport, return_destination_airport, return_starting_terminal, return_destination_terminal, return_departure_time, return_arrival_time):
     input_text = f"""
     \n\nHuman:
-        You are an expert travel planner. Generate a detailed daily travel itinerary for a group of {num_of_ppl} people visiting {destination} for {num_of_days} days. The total budget is ${budget}, so ensure the itinerary stays within budget while balancing affordability and quality.
+        You are an expert travel planner. Generate a detailed daily travel itinerary for a group of {num_of_ppl} people visiting {destination} for {num_of_days} days. The total budget is ${budget}, but the costs of flights (${flight_cost}) and lodging (${lodging_cost}) already account for a total of ${flight_cost + lodging_cost}. The remaining budget for activities, food, and transportation is ${budget - (flight_cost + lodging_cost)}. Ensure the itinerary balances affordability and quality while staying within the remaining budget.
+
+        Include the flight and airport schedules for both departure and return. The group departs from {starting_airport} at terminal {starting_terminal} on {departure_time} and arrives at {destination_airport} at terminal {destination_terminal} on {arrival_time}. On the return flight, they depart from {return_starting_airport} at terminal {return_starting_terminal} on {return_departure_time} and arrive at {return_destination_airport} at terminal {return_destination_terminal} on {return_arrival_time}.
+
+        They will be staying at {hotel_name}, and the itinerary should be tailored to their location. Include that information in the itinerary. Provide suggestions for daily activities, meals, and attractions that are logistically convenient and align with the group's interests, taking into account travel time and costs for local transportation. Additionally, ensure that the schedule accommodates flight times and allows enough time for rest and airport transfers. 
 
             For each day, provide a morning, afternoon, and night schedule that includes specific activities, attractions, meals, and downtime. Incorporate iconic landmarks, local experiences, and highly rated restaurants or cafes (budget-friendly where necessary). Ensure the itinerary covers a mix of cultural, recreational, and relaxation activities.
 
@@ -142,10 +146,9 @@ def AWS_bedrock_sonnet(destination, budget, num_of_days, num_of_ppl):
             "04": ["Day":1, "Block":"Night", "Activity":"Dinner", "Location":"French Bistro", "Details":"Affordable fine-dining experience.", "Time":"5:00 PM - 7:00 PM", "Cost":"$40 per person"],
             "05": ["Day":1, "Block":"Night", "Activity":"Walk by Seine River", "Location":"Seine River", "Details":"Enjoy nighttime views of an iconic French landmark.", "Time":"7:00 PM - 8:00 PM", "Cost":"$0 per person"]
 
-            Do not include any additional in order for the output to be readable as a Python dictionary and avoid truncation.
+            Do not include any additional information in order for the output to be readable as a Python dictionary and avoid truncation.
             Repeat this format exactly for the remaining days.
-            End the output after the itinerary, do not provide accomodations, transportation, or total cost breakdown.
-            
+            End the output after the itinerary, do not provide accommodations, transportation, or total cost breakdown.
 
             Remember to keep the itinerary engaging, realistic, and tailored to the provided parameters.
     \n\nAssistant:
@@ -156,7 +159,7 @@ def AWS_bedrock_sonnet(destination, budget, num_of_days, num_of_ppl):
     try:
         payload = {
             "anthropic_version": "bedrock-2023-05-31", 
-            "max_tokens": 700,
+            "max_tokens": 1500,
             "messages": [
                 {
                     "role": "user",
@@ -246,10 +249,26 @@ def process_trip_data(data):
 }
     
     AWS_bedrock_response = AWS_bedrock_sonnet(
-        destination=trip_summary["destination"],
-        budget=trip_summary["budget"],
-        num_of_days=(nights),  # Calculating number of days
-        num_of_ppl=trip_summary["travelers"]
-    )
+    destination=trip_summary["destination"],
+    budget=trip_summary["budget"],
+    num_of_days=nights, 
+    num_of_ppl=trip_summary["travelers"],
+    flight_cost=float(trip_summary["cheapest_flight_price"]) if trip_summary["cheapest_flight_price"] else 0,
+    lodging_cost=float(trip_summary["hotel_price"]) if trip_summary["hotel_price"] else 0,
+    starting_airport=trip_summary["outbound_departure_airport"],
+    destination_airport=trip_summary["outbound_arrival_airport"],
+    starting_terminal=trip_summary["outbound_starting_terminal"],
+    destination_terminal=trip_summary["outbound_destination_terminal"],
+    departure_time=trip_summary["outbound_departure_time"],
+    arrival_time=trip_summary["outbound_arrival_time"],
+    hotel_name=trip_summary["hotel_name"],
+    return_starting_airport=trip_summary["return_departure_airport"],
+    return_destination_airport=trip_summary["return_arrival_airport"],
+    return_starting_terminal=trip_summary["return_starting_terminal"],
+    return_destination_terminal=trip_summary["return_destination_terminal"],
+    return_departure_time=trip_summary["return_departure_time"],
+    return_arrival_time=trip_summary["return_arrival_time"]
+)
+
 
     return AWS_bedrock_response
