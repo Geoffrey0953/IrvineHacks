@@ -113,6 +113,76 @@ def fetch_hotels_by_city(city, check_in_date, check_out_date, adults, radius=10)
         print(f"Error fetching hotels: {e}")
         return None
 
+def AWS_bedrock_sonnet(destination, budget, num_of_days, num_of_ppl):
+    input_text = f"""
+    \n\nHuman:
+        You are an expert travel planner. Generate a detailed daily travel itinerary for a group of {num_of_ppl} people visiting {destination} for {num_of_days} days. The total budget is ${budget}, so ensure the itinerary stays within budget while balancing affordability and quality.
+
+            For each day, provide a morning, afternoon, and night schedule that includes specific activities, attractions, meals, and downtime. Incorporate iconic landmarks, local experiences, and highly rated restaurants or cafes (budget-friendly where necessary). Ensure the itinerary covers a mix of cultural, recreational, and relaxation activities.
+
+            The schedule should:
+            1. Maximize the group's time while considering transportation and realistic travel durations.
+            2. Include approximate costs for major activities, meals, and entrance fees.
+            3. Provide recommendations for transportation methods between activities.
+            4. Offer alternatives for weather conditions or preferences.
+
+            Structure your response like this:
+
+            **Day X**
+            - **Morning**: [Activity/Attraction, Location=location, Details=details, Time=time, Cost=cost]
+            - **Afternoon**: [Activity/Attraction, Location=location, Details=details, Time=time, Cost=cost]
+            - **Night**: [Activity/Attraction, Location=location, Details=details, Time=time, Cost=cost]
+
+            At the end of the itinerary, provide a brief cost breakdown and total estimated expenses.
+
+            Example Output:            
+            "01": ["Day":1, "Block":"Morning", "Activity":"Eiffel Tower", "Location":"Eiffel Tower", "Details":"Enjoy panoramic view learn about its history.", "Time":"9:00 AM - 11:30 AM", "Cost":"$25 per person"],
+            "02": ["Day":1, "Block":"Afternoon", "Activity":"Lunch", "Location":"Stellar Restaurant", "Details":"Romantic vibes and authentic French cusine", "Time":"12:pp PM - 1:30 PM", "Cost":"$25 per person"],
+            "03": ["Day":1, "Block":"Afternoon", "Activity":"Louvre Museum", "Location":"Eiffel Tower", "Details":"Learn about classic French art and culture.", "Time":"2:00 PM - 4:00 PM", "Cost":"$25 per person"],
+            "04": ["Day":1, "Block":"Night", "Activity":"Dinner", "Location":"French Bistro", "Details":"Affordable fine-dining experience.", "Time":"5:00 PM - 7:00 PM", "Cost":"$40 per person"],
+            "05": ["Day":1, "Block":"Night", "Activity":"Walk by Seine River", "Location":"Seine River", "Details":"Enjoy nighttime views of an iconic French landmark.", "Time":"7:00 PM - 8:00 PM", "Cost":"$0 per person"]
+
+            Do not include any additional in order for the output to be readable as a Python dictionary and avoid truncation.
+            Repeat this format exactly for the remaining days.
+            End the output after the itinerary, do not provide accomodations, transportation, or total cost breakdown.
+            
+
+            Remember to keep the itinerary engaging, realistic, and tailored to the provided parameters.
+    \n\nAssistant:
+    """
+
+    model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+    
+    try:
+        payload = {
+            "anthropic_version": "bedrock-2023-05-31", 
+            "max_tokens": 700,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": input_text  # User's input text
+                }
+            ]
+        }
+
+        # Invoke the Bedrock model
+        response = bedrock_client.invoke_model(
+            modelId=model_id,
+            body=json.dumps(payload),  # Serialize the payload to JSON
+            contentType="application/json",
+            accept="application/json"
+        )
+
+        # Read the StreamingBody content
+        response_body = response["body"].read().decode("utf-8")  # Read and decode the response
+        result = json.loads(response_body)  # Parse the JSON response
+
+        # Print the model's output
+        print(f"This is the result of AWS Bedrock Sonnet:  {result}")
+        return result
+
+    except Exception as e:
+        print("Error:", str(e))
 
 def process_trip_data(data):
     start_location = data['start_location']
@@ -149,9 +219,6 @@ def process_trip_data(data):
         radius=25  # Within a 25 km radius
     )
 
-    # AWS_bedrock_response = AWS_bedrock_sonnet(destination, budget, nights, travelers)
-
-    # Return trip summary as fallback
     trip_summary = {
     'start_location': start_location,
     'destination': destination,
@@ -177,109 +244,12 @@ def process_trip_data(data):
     'return_arrival_airport': cheapest_flight["itineraries"][1]["segments"][-1]["arrival"]["iataCode"] if cheapest_flight and len(cheapest_flight["itineraries"]) > 1 else None,
     'return_arrival_time': cheapest_flight["itineraries"][1]["segments"][-1]["arrival"]["at"] if cheapest_flight and len(cheapest_flight["itineraries"]) > 1 else None,
 }
-
-    return trip_summary
-
-
-# returns a dictionary of 20 restaurants from Google
-def fetch_restaurants():
-    loc = '40.7128,-74.0060' # data['destination'] # Has to be Longitude/Latitude
-    r = 10000
-    keyword = 'restaurant'
-
-    try:
-        query_result = gmaps.places_nearby(
-            location=loc,
-            radius=r,
-            keyword=keyword,
-            type="restaurant"
-        )
-
-        food_dict = {}
-        for place in query_result.get("results", []):
-            food_dict[place["place_id"]] = {
-                "name": place.get("name"),
-                "address": place.get("vicinity"),
-                "rating": place.get("rating"),
-                "user_ratings_total": place.get("user_ratings_total"),
-                "price_level": place.get("price_level"),
-                "place_id": place.get("place_id"),
-            }
-
-        return food_dict
-
-    except Exception as e:
-        print(f"Error fetching restaurants: {e}")
-        return {}
     
+    AWS_bedrock_response = AWS_bedrock_sonnet(
+        destination=trip_summary["destination"],
+        budget=trip_summary["budget"],
+        num_of_days=(nights),  # Calculating number of days
+        num_of_ppl=trip_summary["travelers"]
+    )
 
-def AWS_bedrock_sonnet(destination, budget, num_of_days, num_of_ppl, flight_cost, lodging_cost, starting_airport, destination_airport, starting_terminal, destination_terminal, departure_time, arrival_time, hotel_name, return_starting_airport, return_destination_airport, return_starting_terminal, return_destination_terminal, return_departure_time, return_arrival_time):
-    input_text = f"""
-    \n\nHuman: 
-        You are an expert travel planner. Generate a detailed daily travel itinerary for a group of {num_of_ppl} people visiting {destination} for {num_of_days} days. The total budget is ${budget}, but the costs of flights (${flight_cost}) and lodging (${lodging_cost}) already account for a total of ${flight_cost + lodging_cost}. The remaining budget for activities, food, and transportation is ${budget - (flight_cost + lodging_cost)}. Ensure the itinerary balances affordability and quality while staying within the remaining budget.
-
-        Include the flight and airport schedules for both departure and return. The group departs from {starting_airport} at terminal {starting_terminal} on {departure_time} and arrives at {destination_airport} at terminal {destination_terminal} on {arrival_time}. On the return flight, they depart from {return_starting_airport} at terminal {return_starting_terminal} on {return_departure_time} and arrive at {return_destination_airport} at terminal {return_destination_terminal} on {return_arrival_time}.
-
-        They will be staying at {hotel_name}, and the itinerary should be tailored to their location. Provide suggestions for daily activities, meals, and attractions that are logistically convenient and align with the group's interests, taking into account travel time and costs for local transportation. Additionally, ensure that the schedule accommodates flight times and allows enough time for rest and airport transfers. 
-
-            For each day, provide a morning, afternoon, and night schedule that includes specific activities, attractions, meals, and downtime. Incorporate iconic landmarks, local experiences, and highly rated restaurants or cafes (budget-friendly where necessary). Ensure the itinerary covers a mix of cultural, recreational, and relaxation activities.
-
-            The schedule should:
-            1. Maximize the group's time while considering transportation and realistic travel durations.
-            2. Include approximate costs for major activities, meals, and entrance fees.
-            3. Provide recommendations for transportation methods between activities.
-            4. Offer alternatives for weather conditions or preferences.
-
-            Structure your response like this:
-
-            **Day X**
-            - **Morning**: [Activity/Attraction with details, time, location, and cost]
-            - **Afternoon**: [Activity/Attraction with details, time, location, and cost]
-            - **Night**: [Activity/Attraction with details, time, location, and cost]
-
-            At the end of the itinerary, provide a brief cost breakdown and total estimated expenses.
-
-            Example Output:
-            **Day 1**
-            - **Morning**: Visit the Eiffel Tower. Enjoy panoramic views and learn about its history. [9:00 AM - 11:30 AM, Cost: $25 per person]
-            - **Afternoon**: Lunch at a nearby café, followed by a guided tour of the Louvre Museum. [12:00 PM - 4:00 PM, Cost: $50 per person]
-            - **Night**: Dinner at a local French bistro and an evening stroll along the Seine River. [6:30 PM - 9:30 PM, Cost: $40 per person]
-
-            Repeat this format for the remaining days.
-
-            Remember to keep the itinerary engaging, realistic, and tailored to the provided parameters.
-    \n\nAssistant:
-    """
-
-    model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
-    
-    try:
-        payload = {
-            "anthropic_version": "bedrock-2023-05-31", 
-            "max_tokens": 600,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": input_text  # User's input text
-                }
-            ]
-        }
-
-        # Invoke the Bedrock model
-        response = bedrock_client.invoke_model(
-            modelId=model_id,
-            body=json.dumps(payload),  # Serialize the payload to JSON
-            contentType="application/json",
-            accept="application/json"
-        )
-
-        # Read the StreamingBody content
-        response_body = response["body"].read().decode("utf-8")  # Read and decode the response
-        result = json.loads(response_body)  # Parse the JSON response
-
-        # Print the model's output
-        print(f"This is the result of AWS Bedrock Sonnet:  {result}")
-        return result
-
-    except Exception as e:
-        print("Error:", str(e))
+    return AWS_bedrock_response
