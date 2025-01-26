@@ -4,6 +4,8 @@ import { motion } from "framer-motion"; // For animations
 import { FaPlaneDeparture, FaPlaneArrival, FaUsers, FaCalendarAlt, FaDollarSign } from "react-icons/fa"; // For icons
 import airplaneIcon from '../assets/airplane-cartoon.png'; // Add your cartoon airplane image
 import earthIcon from '../assets/earth-cartoon.png'; // Add your cartoon earth image
+import Autocomplete from '../components/scripts.jsx'
+import city_names from '../components/city_names.jsx'
 
 function App() {
   const [startLocation, setStartLocation] = useState("");
@@ -35,7 +37,7 @@ function App() {
       console.log("Trip planning successful:", response.data);
   
       // Extract and process the itinerary JSON string
-      const itineraryText = response.data?.data?.content?.[0]?.text;
+      const itineraryText = response.data?.data?.[0]?.content?.[0]?.text;
   
       if (itineraryText) {
         // Clean and fix the JSON string
@@ -49,14 +51,14 @@ function App() {
         const parsedItinerary = JSON.parse(`{${fixedItineraryText}}`); // Parse the cleaned string
   
         // Sort by Day to ensure chronological order
-        const sortedItinerary = Object.entries(parsedItinerary)
-          .sort(([keyA, valueA], [keyB, valueB]) => parseInt(valueA.Day, 10) - parseInt(valueB.Day, 10))
-          .reduce((acc, [key, value]) => {
-            acc[key] = value;
-            return acc;
-          }, {});
+        const groupedItinerary = Object.entries(parsedItinerary).reduce((acc, [key, value]) => {
+          const day = value.Day;
+          if (!acc[day]) acc[day] = [];
+          acc[day].push(value); // Group all activities for the same day
+          return acc;
+        }, {});
   
-        setItinerary(sortedItinerary); // Save the sorted itinerary to state
+        setItinerary(groupedItinerary); // Save the sorted itinerary to state
       } else {
         alert("Failed to parse itinerary.");
       }
@@ -139,13 +141,17 @@ function App() {
                       </label>
                       <div className="flex items-center space-x-2">
                         <FaPlaneDeparture className="text-yellow-500" />
-                        <input
+                        <Autocomplete
+                          suggestions={city_names}
+                          id='destination'
                           type="text"
                           value={startLocation}
                           onChange={(e) => setStartLocation(e.target.value)}
                           placeholder="Enter city or airport"
                           className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
+                        <div className="absolute z-10 border border-gray-300 border-t-0 w-full">
+                        </div>
                       </div>
                     </div>
                     {/* Destination */}
@@ -245,20 +251,66 @@ function App() {
               {itinerary && (
                 <div className="bg-white rounded-xl shadow-md p-6 mt-8">
                   <h2 className="text-lg font-bold mb-4 text-orange-500">Your Itinerary</h2>
-                  <div className="space-y-4">
-                    {Object.entries(itinerary).map(([key, details]) => (
-                      <div key={key} className="p-4 bg-orange-50 rounded-md shadow-sm">
-                        <p className="text-sm font-medium text-orange-800">
-                          Day {details["Day"]}, {details["Block"]}
-                        </p>
-                        <p className="text-lg font-semibold">{details["Activity"]}</p>
-                        <p className="text-sm text-gray-700">{details["Location"]}</p>
-                        <p className="text-sm text-gray-500">{details["Details"]}</p>
-                        <p className="text-sm text-gray-700">
-                          Time: {details["Time"]} | Cost: {details["Cost"]}
+                  
+                  {/* Trip Summary */}
+                  <div className="mb-6 p-4 bg-orange-50 rounded-lg">
+                    <h3 className="text-md font-semibold text-orange-800 mb-2">Trip Summary</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Flight Cost</p>
+                        <p className="text-lg font-bold text-orange-600">${Number(itinerary[1][0]?.Cost?.split(' ')[0].replace('$', '') * 2).toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Hotel Cost</p>
+                        <p className="text-lg font-bold text-orange-600">
+                          ${Number(itinerary[1]?.find(item => item.Activity === 'Hotel Stay')?.Cost?.split(' ')[0].replace('$', '') * 
+                            Object.keys(itinerary).length).toFixed(2)}
                         </p>
                       </div>
-                    ))}
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Duration</p>
+                        <p className="text-lg font-bold text-orange-600">{Object.keys(itinerary).length} days</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Daily Itinerary */}
+                  <div className="overflow-x-auto">
+                    <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+                      {Object.entries(itinerary).map(([day, activities]) => (
+                        <div key={day} className="p-4 bg-orange-50 rounded-md shadow-sm w-80 flex-shrink-0">
+                          <p className="text-lg font-bold text-orange-800 mb-3">Day {day}</p>
+                          <div className="space-y-4">
+                            {activities.sort((a, b) => {
+                              // Custom sort order for blocks
+                              const blockOrder = {
+                                'Travel': 1,
+                                'Accommodation': 2,
+                                'Morning': 3,
+                                'Afternoon': 4,
+                                'Night': 5
+                              };
+                              return blockOrder[a.Block] - blockOrder[b.Block];
+                            }).map((activity, index) => (
+                              <div key={index} className="border-l-4 border-orange-300 pl-3">
+                                <div className="flex justify-between items-start mb-1">
+                                  <p className="text-md font-semibold text-orange-900">{activity.Activity}</p>
+                                  <span className="text-sm font-medium text-orange-700 bg-orange-100 px-2 py-0.5 rounded">
+                                    {activity.Block}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-700 mb-1">{activity.Location}</p>
+                                <p className="text-sm text-gray-600 mb-1">{activity.Details}</p>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">{activity.Time}</span>
+                                  <span className="font-medium text-orange-600">{activity.Cost}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

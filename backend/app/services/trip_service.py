@@ -270,4 +270,4 @@ def process_trip_data(data):
     return_arrival_time=trip_summary["return_arrival_time"]
 )
 
-    return AWS_bedrock_response
+    return AWS_bedrock_response, trip_summary
