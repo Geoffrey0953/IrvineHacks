@@ -4,8 +4,9 @@ import { motion } from "framer-motion"; // For animations
 import { FaPlaneDeparture, FaPlaneArrival, FaUsers, FaCalendarAlt, FaDollarSign } from "react-icons/fa"; // For icons
 import airplaneIcon from '../assets/airplane-cartoon.png'; // Add your cartoon airplane image
 import earthIcon from '../assets/earth-cartoon.png'; // Add your cartoon earth image
-import Autocomplete from '../components/scripts.jsx'
-import city_names from '../components/city_names.jsx'
+import Autocomplete from '../components/scripts.jsx';
+import city_names from '../components/city_names.jsx';
+import city_codes from '../components/city_codes.jsx';
 
 function App() {
   const [startLocation, setStartLocation] = useState("");
@@ -37,7 +38,7 @@ function App() {
       console.log("Trip planning successful:", response.data);
   
       // Extract and process the itinerary JSON string
-      const itineraryText = response.data?.data?.[0]?.content?.[0]?.text;
+      const itineraryText = response.data?.data?.content?.[0]?.text;
   
       if (itineraryText) {
         // Clean and fix the JSON string
@@ -51,14 +52,14 @@ function App() {
         const parsedItinerary = JSON.parse(`{${fixedItineraryText}}`); // Parse the cleaned string
   
         // Sort by Day to ensure chronological order
-        const groupedItinerary = Object.entries(parsedItinerary).reduce((acc, [key, value]) => {
-          const day = value.Day;
-          if (!acc[day]) acc[day] = [];
-          acc[day].push(value); // Group all activities for the same day
-          return acc;
-        }, {});
+        const sortedItinerary = Object.entries(parsedItinerary)
+          .sort(([keyA, valueA], [keyB, valueB]) => parseInt(valueA.Day, 10) - parseInt(valueB.Day, 10))
+          .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          }, {});
   
-        setItinerary(groupedItinerary); // Save the sorted itinerary to state
+        setItinerary(sortedItinerary); // Save the sorted itinerary to state
       } else {
         alert("Failed to parse itinerary.");
       }
@@ -141,17 +142,13 @@ function App() {
                       </label>
                       <div className="flex items-center space-x-2">
                         <FaPlaneDeparture className="text-yellow-500" />
-                        <Autocomplete
-                          suggestions={city_names}
-                          id='destination'
+                        <input
                           type="text"
                           value={startLocation}
-                          onChange={(e) => setStartLocation(e.target.value)}
+                          onChange={(e) => setStart(e.target.value)}
                           placeholder="Enter city or airport"
                           className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
-                        <div class="absolute z-10 border border-gray-300 border-t-0 w-full">
-                        </div>
                       </div>
                     </div>
                     {/* Destination */}
@@ -251,26 +248,20 @@ function App() {
               {itinerary && (
                 <div className="bg-white rounded-xl shadow-md p-6 mt-8">
                   <h2 className="text-lg font-bold mb-4 text-orange-500">Your Itinerary</h2>
-                  <div className="overflow-x-auto">
-                    <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
-                      {Object.entries(itinerary).map(([day, activities]) => (
-                        <div key={day} className="p-4 bg-orange-50 rounded-md shadow-sm w-64 flex-shrink-0">
-                          <p className="text-lg font-bold text-orange-800">Day {day}</p>
-                          <div className="space-y-2">
-                            {activities.map((activity, index) => (
-                              <div key={index}>
-                                <p className="text-lg font-semibold">{activity.Activity}</p>
-                                <p className="text-sm text-gray-700">{activity.Location}</p>
-                                <p className="text-sm text-gray-500">{activity.Details}</p>
-                                <p className="text-sm text-gray-700">
-                                  Time: {activity.Time} | Cost: {activity.Cost}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="space-y-4">
+                    {Object.entries(itinerary).map(([key, details]) => (
+                      <div key={key} className="p-4 bg-orange-50 rounded-md shadow-sm">
+                        <p className="text-sm font-medium text-orange-800">
+                          Day {details["Day"]}, {details["Block"]}
+                        </p>
+                        <p className="text-lg font-semibold">{details["Activity"]}</p>
+                        <p className="text-sm text-gray-700">{details["Location"]}</p>
+                        <p className="text-sm text-gray-500">{details["Details"]}</p>
+                        <p className="text-sm text-gray-700">
+                          Time: {details["Time"]} | Cost: {details["Cost"]}
+                        </p>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
