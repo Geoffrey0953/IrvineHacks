@@ -3,13 +3,24 @@ import googlemaps
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import boto3
+import json
 
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
+
 # Client for Google Maps API
 gmaps = googlemaps.Client(key=GOOGLE_API_KEY)
+
+# AWS Client
+bedrock_client = boto3.client('bedrock-runtime',
+            aws_access_key_id=AWS_ACCESS_KEY,
+            aws_secret_access_key=AWS_SECRET_KEY,
+            region_name='us-west-2')
 
 # Client for Amadeus
 amadeus = Client(
@@ -137,8 +148,39 @@ def fetch_restaurants():
         print(f"Error fetching restaurants: {e}")
         return {}
     
-print(fetch_restaurants())
+# Define the input for the Claude-3.5 model
+input_text = "\n\nHuman: Write a short sonnet about the beauty of autumn leaves. \n\nAssistant:"
 
+# Specify the model ID for Claude-3.5 (check with AWS Bedrock for the exact model ID if necessary)
+model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
 
-# Sort based off of rating and price level accordingly to the user's budget
-# Location should be based off of attractions (use it as a parameter) given by the AI model
+try:
+    # Define the payload for the request
+    payload = {
+        "anthropic_version": "bedrock-2023-05-31",  # Specify the version
+        "max_tokens": 200,  # Set the maximum number of tokens
+        "messages": [
+            {
+                "role": "user",
+                "content": input_text  # User's input text
+            }
+        ]
+    }
+
+    # Invoke the Bedrock model
+    response = bedrock_client.invoke_model(
+        modelId=model_id,
+        body=json.dumps(payload),  # Serialize the payload to JSON
+        contentType="application/json",
+        accept="application/json"
+    )
+
+    # Read the StreamingBody content
+    response_body = response["body"].read().decode("utf-8")  # Read and decode the response
+    result = json.loads(response_body)  # Parse the JSON response
+
+    # Print the model's output
+    print("Model Output:", result)
+
+except Exception as e:
+    print("Error:", str(e))
