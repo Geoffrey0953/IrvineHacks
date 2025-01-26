@@ -13,6 +13,7 @@ function App() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [itinerary, setItinerary] = useState(null); // State for the itinerary
 
   const handleSubmit = async () => {
     if (!startLocation || !destination || !budget || !travelers || !startDate || !endDate) {
