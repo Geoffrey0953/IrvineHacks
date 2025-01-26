@@ -47,7 +47,7 @@ def fetch_flight_offers(origin, destination, depart, adults, return_date):
         raise Exception(f"An unexpected error occurred: {e}")
 
 
-def fetch_hotels_by_city(city, check_in_date, check_out_date, adults, radius=10):
+def fetch_hotels_by_city(city, check_in_date, check_out_date, radius=10):
     try:
         # Step 1: Fetch hotels by city (top 10 by rating)
         response = amadeus.reference_data.locations.hotels.by_city.get(
@@ -73,7 +73,7 @@ def fetch_hotels_by_city(city, check_in_date, check_out_date, adults, radius=10)
             hotelIds=','.join(hotel_ids),  # Pass all IDs as a comma-separated string
             checkInDate=check_in_date,
             checkOutDate=check_out_date,
-            adults=adults,
+            # adults=adults,
             currencyCode="USD"
         )
         hotel_offers = offer_response.data
@@ -218,7 +218,7 @@ def process_trip_data(data):
         city=destination,
         check_in_date=start_date,
         check_out_date=end_date,
-        adults=travelers,
+        # adults=travelers,
         radius=25  # Within a 25 km radius
     )
 
@@ -230,7 +230,7 @@ def process_trip_data(data):
     'start_date': start_date,
     'end_date': end_date,
     'cheapest_flight_price': cheapest_flight["price"]["total"] if cheapest_flight else None,
-    'hotel_price': hotel_offers["price"] if hotel_offers else None,
+    'hotel_price': (hotel_offers["price"] * travelers) if hotel_offers else None,
     'hotel_name': hotel_offers["name"] if hotel_offers else None,
     # Outbound trip details
     'outbound_starting_terminal': cheapest_flight["itineraries"][0]["segments"][0]["departure"].get("terminal", "N/A") if cheapest_flight else None,

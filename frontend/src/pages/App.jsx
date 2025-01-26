@@ -4,9 +4,6 @@ import { motion } from "framer-motion"; // For animations
 import { FaPlaneDeparture, FaPlaneArrival, FaUsers, FaCalendarAlt, FaDollarSign } from "react-icons/fa"; // For icons
 import airplaneIcon from '../assets/airplane-cartoon.png'; // Add your cartoon airplane image
 import earthIcon from '../assets/earth-cartoon.png'; // Add your cartoon earth image
-import Autocomplete from '../components/scripts.jsx';
-import city_names from '../components/city_names.jsx';
-import city_codes from '../components/city_codes.jsx';
 
 function App() {
   const [startLocation, setStartLocation] = useState("");
@@ -17,6 +14,8 @@ function App() {
   const [endDate, setEndDate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [itinerary, setItinerary] = useState(null); // State for the itinerary
+  const [flightPrice, setFlightPrice] = useState(null);
+  const [hotelPrice, setHotelPrice] = useState(null);
 
   const handleSubmit = async () => {
     if (!startLocation || !destination || !budget || !travelers || !startDate || !endDate) {
@@ -24,7 +23,7 @@ function App() {
       return;
     }
 
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     try {
       const response = await axios.post("http://127.0.0.1:5000/plan_trip", {
         start_location: startLocation,
@@ -36,7 +35,12 @@ function App() {
       });
   
       console.log("Trip planning successful:", response.data);
-  
+      
+      // Store the total prices directly from the response
+      const tripData = response.data?.data[1];
+      setFlightPrice(tripData?.cheapest_flight_price);
+      setHotelPrice(tripData?.hotel_price);
+
       // Extract and process the itinerary JSON string
       const itineraryText = response.data?.data?.content?.[0]?.text;
   
@@ -67,7 +71,7 @@ function App() {
       console.error("Error planning trip:", error);
       alert("There was an error planning your trip. Please try again.");
     } finally {
-      setIsLoading(false); // Stop loading regardless of outcome
+      setIsLoading(false);
     }
   };  
 
@@ -255,18 +259,21 @@ function App() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <p className="text-sm font-medium text-gray-600">Total Flight Cost</p>
-                        <p className="text-lg font-bold text-orange-600">${Number(itinerary[1][0]?.Cost?.split(' ')[0].replace('$', '') * 2).toFixed(2)}</p>
+                        <p className="text-lg font-bold text-orange-600">
+                          ${flightPrice ? Number(flightPrice).toFixed(2) : '0.00'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-600">Total Hotel Cost</p>
                         <p className="text-lg font-bold text-orange-600">
-                          ${Number(itinerary[1]?.find(item => item.Activity === 'Hotel Stay')?.Cost?.split(' ')[0].replace('$', '') * 
-                            Object.keys(itinerary).length).toFixed(2)}
+                          ${hotelPrice ? Number(hotelPrice).toFixed(2) : '0.00'}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-600">Duration</p>
-                        <p className="text-lg font-bold text-orange-600">{Object.keys(itinerary).length} days</p>
+                        <p className="text-lg font-bold text-orange-600">
+                          {Object.keys(itinerary).length} days
+                        </p>
                       </div>
                     </div>
                   </div>
