@@ -53,12 +53,17 @@ function App() {
               <div className="text-center mb-8">
                 {/* Animated Header */}
                 <motion.h1
-                  className="text-5xl font-extrabold bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent drop-shadow-lg"
+                  className="text-5xl font-extrabold mb-2"
                   initial={{ opacity: 0, y: -30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 1, ease: "easeOut" }}
                 >
-                  Plan Your Perfect Journey
+                  <span className="text-gray-700">
+                    Plan Your Trip Around The{" "}
+                  </span>
+                  <span className="bg-gradient-to-r from-orange-600 to-yellow-400 bg-clip-text text-transparent drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">
+                    Planit
+                  </span>
                 </motion.h1>
               </div>
 
