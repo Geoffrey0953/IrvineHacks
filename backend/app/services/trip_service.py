@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import boto3
 import json
 
-
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
@@ -78,6 +77,10 @@ def process_trip_data(data):
     start_date = data['start_date']
     end_date = data['end_date']
 
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+    difference = (end - start).days + 1
+
     # Returns the cheapest flights
     cheapest_flight = fetch_flight_offers(
         origin=start_location,
@@ -104,18 +107,23 @@ def process_trip_data(data):
     else:
         print("Nothing was found")
 
-    trip_summary = {
-        'start_location': start_location,   
-        'destination': destination,
-        'budget': budget,
-        'travelers': travelers,
-        'start_date': start_date,
-        'end_date': end_date,
-        'cheapest_flight': cheapest_flight,
-        'hotel_offers': hotel_offers[:5] if hotel_offers else []
-    }
+    AWS_bedrock_response = AWS_bedrock_sonnet(destination, budget, difference, travelers)
 
-    return trip_summary
+    return AWS_bedrock_response
+
+    # trip_summary = {
+    #     'start_location': start_location,   
+    #     'destination': destination,
+    #     'budget': budget,
+    #     'travelers': travelers,
+    #     'start_date': start_date,
+    #     'end_date': end_date,
+    #     'cheapest_flight': cheapest_flight,
+    #     'hotel_offers': hotel_offers[:5] if hotel_offers else []
+    # }
+
+    # return trip_summary
+
 
 # returns a dictionary of 20 restaurants from Google
 def fetch_restaurants():
@@ -148,39 +156,70 @@ def fetch_restaurants():
         print(f"Error fetching restaurants: {e}")
         return {}
     
-# Define the input for the Claude-3.5 model
-input_text = "\n\nHuman: Write a short sonnet about the beauty of autumn leaves. \n\nAssistant:"
 
-# Specify the model ID for Claude-3.5 (check with AWS Bedrock for the exact model ID if necessary)
-model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+def AWS_bedrock_sonnet(destination, budget, num_of_days, num_of_ppl):
+    input_text = f"""
+    \n\nHuman: 
+        You are an expert travel planner. Generate a detailed daily travel itinerary for a group of {num_of_ppl} people visiting {destination} for {num_of_days} days. The total budget is ${budget}, so ensure the itinerary stays within budget while balancing affordability and quality.
 
-try:
-    # Define the payload for the request
-    payload = {
-        "anthropic_version": "bedrock-2023-05-31",  # Specify the version
-        "max_tokens": 200,  # Set the maximum number of tokens
-        "messages": [
-            {
-                "role": "user",
-                "content": input_text  # User's input text
-            }
-        ]
-    }
+            For each day, provide a morning, afternoon, and night schedule that includes specific activities, attractions, meals, and downtime. Incorporate iconic landmarks, local experiences, and highly rated restaurants or cafes (budget-friendly where necessary). Ensure the itinerary covers a mix of cultural, recreational, and relaxation activities.
 
-    # Invoke the Bedrock model
-    response = bedrock_client.invoke_model(
-        modelId=model_id,
-        body=json.dumps(payload),  # Serialize the payload to JSON
-        contentType="application/json",
-        accept="application/json"
-    )
+            The schedule should:
+            1. Maximize the group's time while considering transportation and realistic travel durations.
+            2. Include approximate costs for major activities, meals, and entrance fees.
+            3. Provide recommendations for transportation methods between activities.
+            4. Offer alternatives for weather conditions or preferences.
 
-    # Read the StreamingBody content
-    response_body = response["body"].read().decode("utf-8")  # Read and decode the response
-    result = json.loads(response_body)  # Parse the JSON response
+            Structure your response like this:
 
-    # Print the model's output
-    print("Model Output:", result)
+            **Day X**
+            - **Morning**: [Activity/Attraction with details, time, location, and cost]
+            - **Afternoon**: [Activity/Attraction with details, time, location, and cost]
+            - **Night**: [Activity/Attraction with details, time, location, and cost]
 
-except Exception as e:
-    print("Error:", str(e))
+            At the end of the itinerary, provide a brief cost breakdown and total estimated expenses.
+
+            Example Output:
+            **Day 1**
+            - **Morning**: Visit the Eiffel Tower. Enjoy panoramic views and learn about its history. [9:00 AM - 11:30 AM, Cost: $25 per person]
+            - **Afternoon**: Lunch at a nearby café, followed by a guided tour of the Louvre Museum. [12:00 PM - 4:00 PM, Cost: $50 per person]
+            - **Night**: Dinner at a local French bistro and an evening stroll along the Seine River. [6:30 PM - 9:30 PM, Cost: $40 per person]
+
+            Repeat this format for the remaining days.
+
+            Remember to keep the itinerary engaging, realistic, and tailored to the provided parameters.
+    \n\nAssistant:
+    """
+
+    model_id = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+    
+    try:
+        payload = {
+            "anthropic_version": "bedrock-2023-05-31", 
+            "max_tokens": 600,
+            "messages": [
+                {
+                    "role": "user",
+                    "content": input_text  # User's input text
+                }
+            ]
+        }
+
+        # Invoke the Bedrock model
+        response = bedrock_client.invoke_model(
+            modelId=model_id,
+            body=json.dumps(payload),  # Serialize the payload to JSON
+            contentType="application/json",
+            accept="application/json"
+        )
+
+        # Read the StreamingBody content
+        response_body = response["body"].read().decode("utf-8")  # Read and decode the response
+        result = json.loads(response_body)  # Parse the JSON response
+
+        # Print the model's output
+        print(result)
+        return result
+
+    except Exception as e:
+        print("Error:", str(e))
