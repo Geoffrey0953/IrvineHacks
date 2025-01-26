@@ -14,6 +14,8 @@ function App() {
   const [endDate, setEndDate] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [itinerary, setItinerary] = useState(null); // State for the itinerary
+  const [flightPrice, setFlightPrice] = useState(null);
+  const [hotelPrice, setHotelPrice] = useState(null);
 
   const handleSubmit = async () => {
     if (!startLocation || !destination || !budget || !travelers || !startDate || !endDate) {
@@ -21,7 +23,7 @@ function App() {
       return;
     }
 
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     try {
       const response = await axios.post("http://127.0.0.1:5000/plan_trip", {
         start_location: startLocation,
@@ -33,9 +35,14 @@ function App() {
       });
   
       console.log("Trip planning successful:", response.data);
-  
+      
+      // Store the total prices directly from the response
+      const tripData = response.data?.data[1];
+      setFlightPrice(tripData?.cheapest_flight_price);
+      setHotelPrice(tripData?.hotel_price);
+
       // Extract and process the itinerary JSON string
-      const itineraryText = response.data?.data?.[0]?.content?.[0]?.text;
+      const itineraryText = response.data?.data?.content?.[0]?.text;
   
       if (itineraryText) {
         // Clean and fix the JSON string
@@ -49,14 +56,14 @@ function App() {
         const parsedItinerary = JSON.parse(`{${fixedItineraryText}}`); // Parse the cleaned string
   
         // Sort by Day to ensure chronological order
-        const groupedItinerary = Object.entries(parsedItinerary).reduce((acc, [key, value]) => {
-          const day = value.Day;
-          if (!acc[day]) acc[day] = [];
-          acc[day].push(value); // Group all activities for the same day
-          return acc;
-        }, {});
+        const sortedItinerary = Object.entries(parsedItinerary)
+          .sort(([keyA, valueA], [keyB, valueB]) => parseInt(valueA.Day, 10) - parseInt(valueB.Day, 10))
+          .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          }, {});
   
-        setItinerary(groupedItinerary); // Save the sorted itinerary to state
+        setItinerary(sortedItinerary); // Save the sorted itinerary to state
       } else {
         alert("Failed to parse itinerary.");
       }
@@ -64,7 +71,7 @@ function App() {
       console.error("Error planning trip:", error);
       alert("There was an error planning your trip. Please try again.");
     } finally {
-      setIsLoading(false); // Stop loading regardless of outcome
+      setIsLoading(false);
     }
   };  
 
@@ -142,7 +149,7 @@ function App() {
                         <input
                           type="text"
                           value={startLocation}
-                          onChange={(e) => setStartLocation(e.target.value)}
+                          onChange={(e) => setStart(e.target.value)}
                           placeholder="Enter city or airport"
                           className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
@@ -252,18 +259,21 @@ function App() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <p className="text-sm font-medium text-gray-600">Total Flight Cost</p>
-                        <p className="text-lg font-bold text-orange-600">${Number(itinerary[1][0]?.Cost?.split(' ')[0].replace('$', '') * 2).toFixed(2)}</p>
+                        <p className="text-lg font-bold text-orange-600">
+                          ${flightPrice ? Number(flightPrice).toFixed(2) : '0.00'}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-600">Total Hotel Cost</p>
                         <p className="text-lg font-bold text-orange-600">
-                          ${Number(itinerary[1]?.find(item => item.Activity === 'Hotel Stay')?.Cost?.split(' ')[0].replace('$', '') * 
-                            Object.keys(itinerary).length).toFixed(2)}
+                          ${hotelPrice ? Number(hotelPrice).toFixed(2) : '0.00'}
                         </p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-gray-600">Duration</p>
-                        <p className="text-lg font-bold text-orange-600">{Object.keys(itinerary).length} days</p>
+                        <p className="text-lg font-bold text-orange-600">
+                          {Object.keys(itinerary).length} days
+                        </p>
                       </div>
                     </div>
                   </div>
