@@ -4,6 +4,8 @@ import { motion } from "framer-motion"; // For animations
 import { FaPlaneDeparture, FaPlaneArrival, FaUsers, FaCalendarAlt, FaDollarSign } from "react-icons/fa"; // For icons
 import airplaneIcon from '../assets/airplane-cartoon.png'; // Add your cartoon airplane image
 import earthIcon from '../assets/earth-cartoon.png'; // Add your cartoon earth image
+import Autocomplete from '../components/scripts.jsx'
+import city_names from '../components/city_names.jsx'
 
 function App() {
   const [startLocation, setStartLocation] = useState("");
@@ -139,13 +141,17 @@ function App() {
                       </label>
                       <div className="flex items-center space-x-2">
                         <FaPlaneDeparture className="text-yellow-500" />
-                        <input
+                        <Autocomplete
+                          suggestions={city_names}
+                          id='destination'
                           type="text"
                           value={startLocation}
                           onChange={(e) => setStartLocation(e.target.value)}
                           placeholder="Enter city or airport"
                           className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
+                        <div class="absolute z-10 border border-gray-300 border-t-0 w-full">
+                        </div>
                       </div>
                     </div>
                     {/* Destination */}
