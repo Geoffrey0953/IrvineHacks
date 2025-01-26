@@ -71,7 +71,7 @@ function App() {
                   <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                     {/* Starting Location */}
                     <div className="flex flex-col relative">
-                      <label className="text-orange-800 text-sm font-medium mb-1">
+                      <label className="text-orange-800 text-sm font-medium mb-1 pl-7">
                         Starting Location
                       </label>
                       <div className="flex items-center space-x-2">
@@ -87,7 +87,7 @@ function App() {
                     </div>
                     {/* Destination */}
                     <div className="flex flex-col relative">
-                      <label className="text-orange-800 text-sm font-medium mb-1">
+                      <label className="text-orange-800 text-sm font-medium mb-1 pl-7">
                         Destination
                       </label>
                       <div className="flex items-center space-x-2">
@@ -103,7 +103,7 @@ function App() {
                     </div>
                     {/* Budget */}
                     <div className="flex flex-col relative">
-                      <label className="text-orange-800 text-sm font-medium mb-1">
+                      <label className="text-orange-800 text-sm font-medium mb-1 pl-7">
                         Budget
                       </label>
                       <div className="flex items-center space-x-2">
@@ -120,7 +120,7 @@ function App() {
                     </div>
                     {/* Travelers */}
                     <div className="flex flex-col relative">
-                      <label className="text-orange-800 text-sm font-medium mb-1">
+                      <label className="text-orange-800 text-sm font-medium mb-1 pl-7">
                         Travelers
                       </label>
                       <div className="flex items-center space-x-2">
@@ -137,7 +137,7 @@ function App() {
                     </div>
                     {/* Dates */}
                     <div className="flex flex-col relative">
-                      <label className="text-orange-800 text-sm font-medium mb-1">
+                      <label className="text-orange-800 text-sm font-medium mb-1 pl-7">
                         From
                       </label>
                       <div className="flex items-center space-x-2">
@@ -151,7 +151,7 @@ function App() {
                       </div>
                     </div>
                     <div className="flex flex-col relative">
-                      <label className="text-orange-800 text-sm font-medium mb-1">
+                      <label className="text-orange-800 text-sm font-medium mb-1 pl-7">
                         To
                       </label>
                       <div className="flex items-center space-x-2">
