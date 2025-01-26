@@ -248,20 +248,66 @@ function App() {
               {itinerary && (
                 <div className="bg-white rounded-xl shadow-md p-6 mt-8">
                   <h2 className="text-lg font-bold mb-4 text-orange-500">Your Itinerary</h2>
-                  <div className="space-y-4">
-                    {Object.entries(itinerary).map(([key, details]) => (
-                      <div key={key} className="p-4 bg-orange-50 rounded-md shadow-sm">
-                        <p className="text-sm font-medium text-orange-800">
-                          Day {details["Day"]}, {details["Block"]}
-                        </p>
-                        <p className="text-lg font-semibold">{details["Activity"]}</p>
-                        <p className="text-sm text-gray-700">{details["Location"]}</p>
-                        <p className="text-sm text-gray-500">{details["Details"]}</p>
-                        <p className="text-sm text-gray-700">
-                          Time: {details["Time"]} | Cost: {details["Cost"]}
+                  
+                  {/* Trip Summary */}
+                  <div className="mb-6 p-4 bg-orange-50 rounded-lg">
+                    <h3 className="text-md font-semibold text-orange-800 mb-2">Trip Summary</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Flight Cost</p>
+                        <p className="text-lg font-bold text-orange-600">${Number(itinerary[1][0]?.Cost?.split(' ')[0].replace('$', '') * 2).toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Total Hotel Cost</p>
+                        <p className="text-lg font-bold text-orange-600">
+                          ${Number(itinerary[1]?.find(item => item.Activity === 'Hotel Stay')?.Cost?.split(' ')[0].replace('$', '') * 
+                            Object.keys(itinerary).length).toFixed(2)}
                         </p>
                       </div>
-                    ))}
+                      <div>
+                        <p className="text-sm font-medium text-gray-600">Duration</p>
+                        <p className="text-lg font-bold text-orange-600">{Object.keys(itinerary).length} days</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Daily Itinerary */}
+                  <div className="overflow-x-auto">
+                    <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+                      {Object.entries(itinerary).map(([day, activities]) => (
+                        <div key={day} className="p-4 bg-orange-50 rounded-md shadow-sm w-80 flex-shrink-0">
+                          <p className="text-lg font-bold text-orange-800 mb-3">Day {day}</p>
+                          <div className="space-y-4">
+                            {activities.sort((a, b) => {
+                              // Custom sort order for blocks
+                              const blockOrder = {
+                                'Travel': 1,
+                                'Accommodation': 2,
+                                'Morning': 3,
+                                'Afternoon': 4,
+                                'Night': 5
+                              };
+                              return blockOrder[a.Block] - blockOrder[b.Block];
+                            }).map((activity, index) => (
+                              <div key={index} className="border-l-4 border-orange-300 pl-3">
+                                <div className="flex justify-between items-start mb-1">
+                                  <p className="text-md font-semibold text-orange-900">{activity.Activity}</p>
+                                  <span className="text-sm font-medium text-orange-700 bg-orange-100 px-2 py-0.5 rounded">
+                                    {activity.Block}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-gray-700 mb-1">{activity.Location}</p>
+                                <p className="text-sm text-gray-600 mb-1">{activity.Details}</p>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">{activity.Time}</span>
+                                  <span className="font-medium text-orange-600">{activity.Cost}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
