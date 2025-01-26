@@ -37,7 +37,7 @@ function App() {
       console.log("Trip planning successful:", response.data);
   
       // Extract and process the itinerary JSON string
-      const itineraryText = response.data?.data?.content?.[0]?.text;
+      const itineraryText = response.data?.data?.[0]?.content?.[0]?.text;
   
       if (itineraryText) {
         // Clean and fix the JSON string
@@ -51,14 +51,14 @@ function App() {
         const parsedItinerary = JSON.parse(`{${fixedItineraryText}}`); // Parse the cleaned string
   
         // Sort by Day to ensure chronological order
-        const sortedItinerary = Object.entries(parsedItinerary)
-          .sort(([keyA, valueA], [keyB, valueB]) => parseInt(valueA.Day, 10) - parseInt(valueB.Day, 10))
-          .reduce((acc, [key, value]) => {
-            acc[key] = value;
-            return acc;
-          }, {});
+        const groupedItinerary = Object.entries(parsedItinerary).reduce((acc, [key, value]) => {
+          const day = value.Day;
+          if (!acc[day]) acc[day] = [];
+          acc[day].push(value); // Group all activities for the same day
+          return acc;
+        }, {});
   
-        setItinerary(sortedItinerary); // Save the sorted itinerary to state
+        setItinerary(groupedItinerary); // Save the sorted itinerary to state
       } else {
         alert("Failed to parse itinerary.");
       }
@@ -251,20 +251,26 @@ function App() {
               {itinerary && (
                 <div className="bg-white rounded-xl shadow-md p-6 mt-8">
                   <h2 className="text-lg font-bold mb-4 text-orange-500">Your Itinerary</h2>
-                  <div className="space-y-4">
-                    {Object.entries(itinerary).map(([key, details]) => (
-                      <div key={key} className="p-4 bg-orange-50 rounded-md shadow-sm">
-                        <p className="text-sm font-medium text-orange-800">
-                          Day {details["Day"]}, {details["Block"]}
-                        </p>
-                        <p className="text-lg font-semibold">{details["Activity"]}</p>
-                        <p className="text-sm text-gray-700">{details["Location"]}</p>
-                        <p className="text-sm text-gray-500">{details["Details"]}</p>
-                        <p className="text-sm text-gray-700">
-                          Time: {details["Time"]} | Cost: {details["Cost"]}
-                        </p>
-                      </div>
-                    ))}
+                  <div className="overflow-x-auto">
+                    <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
+                      {Object.entries(itinerary).map(([day, activities]) => (
+                        <div key={day} className="p-4 bg-orange-50 rounded-md shadow-sm w-64 flex-shrink-0">
+                          <p className="text-lg font-bold text-orange-800">Day {day}</p>
+                          <div className="space-y-2">
+                            {activities.map((activity, index) => (
+                              <div key={index}>
+                                <p className="text-lg font-semibold">{activity.Activity}</p>
+                                <p className="text-sm text-gray-700">{activity.Location}</p>
+                                <p className="text-sm text-gray-500">{activity.Details}</p>
+                                <p className="text-sm text-gray-700">
+                                  Time: {activity.Time} | Cost: {activity.Cost}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}
