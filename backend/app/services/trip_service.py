@@ -218,7 +218,7 @@ def AWS_bedrock_sonnet(destination, budget, num_of_days, num_of_ppl):
         result = json.loads(response_body)  # Parse the JSON response
 
         # Print the model's output
-        print(result)
+        print(f"This is the result of AWS Bedrock Sonnet:  {result}")
         return result
 
     except Exception as e:
