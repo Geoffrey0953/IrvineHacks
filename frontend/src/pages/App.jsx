@@ -2,6 +2,8 @@ import { useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion"; // For animations
 import { FaPlaneDeparture, FaPlaneArrival, FaUsers, FaCalendarAlt, FaDollarSign } from "react-icons/fa"; // For icons
+import airplaneIcon from '../assets/airplane-cartoon.png'; // Add your cartoon airplane image
+import earthIcon from '../assets/earth-cartoon.png'; // Add your cartoon earth image
 
 function App() {
   const [startLocation, setStartLocation] = useState("");
@@ -10,6 +12,7 @@ function App() {
   const [travelers, setTravelers] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (!startLocation || !destination || !budget || !travelers || !startDate || !endDate) {
@@ -17,6 +20,7 @@ function App() {
       return;
     }
 
+    setIsLoading(true); // Start loading
     try {
       const response = await axios.post("http://127.0.0.1:5000/plan_trip", {
         start_location: startLocation,
@@ -31,6 +35,8 @@ function App() {
     } catch (error) {
       console.error("Error planning trip:", error);
       alert("There was an error planning your trip. Please try again.");
+    } finally {
+      setIsLoading(false); // Stop loading regardless of outcome
     }
   };
 
@@ -45,6 +51,33 @@ function App() {
       >
         <source src="/videos/globe-animation.mp4" type="video/mp4" />
       </video>
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white/90 p-8 rounded-lg shadow-xl flex flex-col items-center space-y-4">
+            <div className="relative w-32 h-32">
+              {/* Earth in the center */}
+              <img 
+                src={earthIcon} 
+                alt="Earth" 
+                className="absolute w-20 h-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+              />
+              {/* Dashed circle path */}
+              <div className="absolute inset-0 border-4 border-dashed border-orange-300 rounded-full"></div>
+              {/* Rotating airplane */}
+              <div className="absolute inset-0 animate-spin" style={{ animationDuration: '10s' }}>
+                <img 
+                  src={airplaneIcon} 
+                  alt="Airplane" 
+                  className="absolute w-10 h-10 left-1/2 -translate-x-1/2 -top-5"
+                />
+              </div>
+            </div>
+            <p className="text-orange-800 font-medium">Planning your perfect trip...</p>
+          </div>
+        </div>
+      )}
 
       <div className="min-h-screen relative">
         <div className="relative z-20">
@@ -78,7 +111,7 @@ function App() {
                           value={startLocation}
                           onChange={(e) => setStartLocation(e.target.value)}
                           placeholder="Enter city or airport"
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 placeholder-orange-300 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
                       </div>
                     </div>
@@ -94,7 +127,7 @@ function App() {
                           value={destination}
                           onChange={(e) => setDestination(e.target.value)}
                           placeholder="Enter city or airport"
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 placeholder-orange-300 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
                       </div>
                     </div>
@@ -111,7 +144,7 @@ function App() {
                           onChange={(e) => setBudget(e.target.value)}
                           placeholder="Enter budget"
                           min="0"
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 placeholder-orange-300 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
                       </div>
                     </div>
@@ -128,7 +161,7 @@ function App() {
                           onChange={(e) => setTravelers(e.target.value)}
                           placeholder="Enter number"
                           min="1"
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 placeholder-orange-300 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
                       </div>
                     </div>
@@ -143,7 +176,7 @@ function App() {
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black w-full"
                         />
                       </div>
                     </div>
@@ -158,7 +191,7 @@ function App() {
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
                           min={startDate}
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black w-full"
                         />
                       </div>
                     </div>
