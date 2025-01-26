@@ -20,7 +20,7 @@ const Navbar = () => {
               className="bg-gradient-to-r from-orange-600 to-yellow-400 bg-clip-text text-transparent transition-colors duration-300 text-xl transform hover:scale-110 transition-transform"
 
             >
-              About Us
+              Our Mission
             </Link>
             <Link 
               to="/team" 
