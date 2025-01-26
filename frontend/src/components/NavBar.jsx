@@ -7,7 +7,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
             <Link to="/" className="text-rose-400 text-xl font-bold hover:text-rose-500">
-              Name
+              Planit
             </Link>
           </div>
           <div className="flex space-x-8">
