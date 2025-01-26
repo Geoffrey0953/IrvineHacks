@@ -47,26 +47,73 @@ def fetch_flight_offers(origin, destination, depart, adults, return_date):
         raise Exception(f"An unexpected error occurred: {e}")
 
 
-def fetch_hotels_by_city(city, radius, ratings=None):
+def fetch_hotels_by_city(city, check_in_date, check_out_date, adults, radius=10):
     try:
+        # Step 1: Fetch hotels by city (top 10 by rating)
         response = amadeus.reference_data.locations.hotels.by_city.get(
-            cityCode = city,
-            radius=radius,
-            ratings=ratings
+            cityCode=city,
+            radius=radius  # Radius in kilometers
+        )
+        hotels = response.data
+
+        if not hotels:
+            raise Exception("No hotels found in the specified city")
+
+        # Sort hotels by rating and select the top 10
+        top_hotels = sorted(hotels, key=lambda x: x.get('rating', 0), reverse=True)[:10]
+        hotel_ids = [hotel.get('hotelId') for hotel in top_hotels if hotel.get('hotelId')]
+
+        print(f"Top 10 Hotel IDs by Rating: {hotel_ids}")
+
+        if not hotel_ids:
+            raise Exception("No valid hotel IDs found")
+
+        # Step 2: Fetch hotel offers for these IDs
+        offer_response = amadeus.shopping.hotel_offers_search.get(
+            hotelIds=','.join(hotel_ids),  # Pass all IDs as a comma-separated string
+            checkInDate=check_in_date,
+            checkOutDate=check_out_date,
+            adults=adults,
+            currency="USD"
+        )
+        hotel_offers = offer_response.data
+
+        if not hotel_offers:
+            raise Exception("No offers found for the specified hotels")
+
+        
+
+        # Find the cheapest hotel from the offers
+        cheapest_hotel = min(
+            [
+                {
+                    "name": hotel.get("hotel", {}).get("name", "Unknown Hotel"),
+                    "rating": hotel.get("hotel", {}).get("rating", "N/A"),
+                    "price": float(offer.get("price", {}).get("total", 0)),
+                    "currency": offer.get("price", {}).get("currency", "USD"),
+                    "offer_id": offer.get("id"),
+                }
+                for hotel in hotel_offers
+                for offer in hotel.get("offers", [])
+            ],
+            key=lambda x: x["price"],  # Find the hotel with the lowest price
+            default=None
         )
 
-        hotel_offers = sorted(
-            response.data,
-            key=lambda x: x.get('hotel', {}).get('rating', 0),
-            reverse=True 
-        )
+        if not cheapest_hotel:
+            raise Exception("No suitable hotel found based on price")
 
-        return hotel_offers
+        # Print and return the cheapest hotel
+        print("\nCheapest Hotel Found:")
+        print(cheapest_hotel)
+        return cheapest_hotel
 
     except ResponseError as e:
-        raise Exception(f"Amadeus API Error: {e.message}")
+        print(f"Amadeus API Error: {e.code} - {e.description}")
+        return None
     except Exception as e:
-        raise Exception(f"An unexpected error occurred: {e}")
+        print(f"Error fetching hotels: {e}")
+        return None
 
 
 def process_trip_data(data):
@@ -79,9 +126,9 @@ def process_trip_data(data):
 
     start = datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
-    difference = (end - start).days + 1
+    nights = (end - start).days + 1
 
-    # Returns the cheapest flights
+    # Step 1: Fetch the cheapest flights
     cheapest_flight = fetch_flight_offers(
         origin=start_location,
         destination=destination,
@@ -89,40 +136,42 @@ def process_trip_data(data):
         adults=travelers,
         return_date=end_date,
     )
-    
     if cheapest_flight:
-        print(f"3 Cheapest flights: {cheapest_flight}")
+        print(f"Cheapest flight options: {cheapest_flight}")
     else:
         print("No flights were found")
 
-    # Returns highest rated hotels by city 
+    # Step 2: Fetch hotel offers by city
     hotel_offers = fetch_hotels_by_city(
         city=destination,
-        radius=25, # Within a 25 km radius
-        ratings= ','.join(map(str, range(3, 6))) # Minimum rating is 3 stars and max is 5
+        check_in_date=start_date,
+        check_out_date=end_date,
+        adults=travelers,
+        radius=25  # Within a 25 km radius
     )
-
     if hotel_offers:
-        print(f"Top rated hotels in the city: {hotel_offers[:3]}")
+        print(f"Top hotels with prices: {hotel_offers[:3]}")
     else:
-        print("Nothing was found")
+        print("No hotels were found")
 
-    AWS_bedrock_response = AWS_bedrock_sonnet(destination, budget, difference, travelers)
+    # Step 3: Process AWS Bedrock response (if defined)
+    if 'AWS_bedrock_sonnet' in globals():
+        AWS_bedrock_response = AWS_bedrock_sonnet(destination, budget, nights, travelers)
+        return AWS_bedrock_response
 
-    return AWS_bedrock_response
+    # Return trip summary as fallback
+    trip_summary = {
+        'start_location': start_location,
+        'destination': destination,
+        'budget': budget,
+        'travelers': travelers,
+        'start_date': start_date,
+        'end_date': end_date,
+        'cheapest_flight': cheapest_flight,
+        'hotel_offers': hotel_offers[:5] if hotel_offers else []
+    }
 
-    # trip_summary = {
-    #     'start_location': start_location,   
-    #     'destination': destination,
-    #     'budget': budget,
-    #     'travelers': travelers,
-    #     'start_date': start_date,
-    #     'end_date': end_date,
-    #     'cheapest_flight': cheapest_flight,
-    #     'hotel_offers': hotel_offers[:5] if hotel_offers else []
-    # }
-
-    # return trip_summary
+    return trip_summary
 
 
 # returns a dictionary of 20 restaurants from Google
