@@ -78,7 +78,7 @@ function App() {
                           value={startLocation}
                           onChange={(e) => setStartLocation(e.target.value)}
                           placeholder="Enter city or airport"
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 placeholder-orange-300 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
                       </div>
                     </div>
@@ -94,7 +94,7 @@ function App() {
                           value={destination}
                           onChange={(e) => setDestination(e.target.value)}
                           placeholder="Enter city or airport"
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 placeholder-orange-300 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
                       </div>
                     </div>
@@ -111,7 +111,7 @@ function App() {
                           onChange={(e) => setBudget(e.target.value)}
                           placeholder="Enter budget"
                           min="0"
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 placeholder-orange-300 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
                       </div>
                     </div>
@@ -128,7 +128,7 @@ function App() {
                           onChange={(e) => setTravelers(e.target.value)}
                           placeholder="Enter number"
                           min="1"
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 placeholder-orange-300 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black placeholder-gray-500 w-full"
                         />
                       </div>
                     </div>
@@ -143,7 +143,7 @@ function App() {
                           type="date"
                           value={startDate}
                           onChange={(e) => setStartDate(e.target.value)}
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black w-full"
                         />
                       </div>
                     </div>
@@ -158,7 +158,7 @@ function App() {
                           value={endDate}
                           onChange={(e) => setEndDate(e.target.value)}
                           min={startDate}
-                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-orange-900 w-full"
+                          className="p-2 text-sm border border-orange-200 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white/50 backdrop-blur-sm text-black w-full"
                         />
                       </div>
                     </div>
