@@ -140,11 +140,11 @@ def AWS_bedrock_sonnet(destination, budget, num_of_days, num_of_ppl, flight_cost
             At the end of the itinerary, provide a brief cost breakdown and total estimated expenses.
 
             Example Output:            
-            "01": ["Day":1, "Block":"Morning", "Activity":"Eiffel Tower", "Location":"Eiffel Tower", "Details":"Enjoy panoramic view learn about its history.", "Time":"9:00 AM - 11:30 AM", "Cost":"$25 per person"],
-            "02": ["Day":1, "Block":"Afternoon", "Activity":"Lunch", "Location":"Stellar Restaurant", "Details":"Romantic vibes and authentic French cusine", "Time":"12:pp PM - 1:30 PM", "Cost":"$25 per person"],
-            "03": ["Day":1, "Block":"Afternoon", "Activity":"Louvre Museum", "Location":"Eiffel Tower", "Details":"Learn about classic French art and culture.", "Time":"2:00 PM - 4:00 PM", "Cost":"$25 per person"],
-            "04": ["Day":1, "Block":"Night", "Activity":"Dinner", "Location":"French Bistro", "Details":"Affordable fine-dining experience.", "Time":"5:00 PM - 7:00 PM", "Cost":"$40 per person"],
-            "05": ["Day":1, "Block":"Night", "Activity":"Walk by Seine River", "Location":"Seine River", "Details":"Enjoy nighttime views of an iconic French landmark.", "Time":"7:00 PM - 8:00 PM", "Cost":"$0 per person"]
+            "1": ["Day":1, "Block":"Morning", "Activity":"Eiffel Tower", "Location":"Eiffel Tower", "Details":"Enjoy panoramic view learn about its history.", "Time":"9:00 AM - 11:30 AM", "Cost":"$25 per person"],
+            "2": ["Day":1, "Block":"Afternoon", "Activity":"Lunch", "Location":"Stellar Restaurant", "Details":"Romantic vibes and authentic French cusine", "Time":"12:pp PM - 1:30 PM", "Cost":"$25 per person"],
+            "3": ["Day":1, "Block":"Afternoon", "Activity":"Louvre Museum", "Location":"Eiffel Tower", "Details":"Learn about classic French art and culture.", "Time":"2:00 PM - 4:00 PM", "Cost":"$25 per person"],
+            "4": ["Day":1, "Block":"Night", "Activity":"Dinner", "Location":"French Bistro", "Details":"Affordable fine-dining experience.", "Time":"5:00 PM - 7:00 PM", "Cost":"$40 per person"],
+            "5": ["Day":1, "Block":"Night", "Activity":"Walk by Seine River", "Location":"Seine River", "Details":"Enjoy nighttime views of an iconic French landmark.", "Time":"7:00 PM - 8:00 PM", "Cost":"$0 per person"]
 
             Do not include any additional information in order for the output to be readable as a Python dictionary and avoid truncation.
             Repeat this format exactly for the remaining days.
@@ -269,6 +269,5 @@ def process_trip_data(data):
     return_departure_time=trip_summary["return_departure_time"],
     return_arrival_time=trip_summary["return_arrival_time"]
 )
-
 
     return AWS_bedrock_response

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
-import { motion } from "framer-motion"; // For animations
-import { FaPlaneDeparture, FaPlaneArrival, FaUsers, FaCalendarAlt, FaDollarSign } from "react-icons/fa"; // For icons
+import { motion } from "framer-motion";
+import { FaPlaneDeparture, FaPlaneArrival, FaUsers, FaCalendarAlt, FaDollarSign } from "react-icons/fa";
 
 function App() {
   const [startLocation, setStartLocation] = useState("");
@@ -10,13 +10,14 @@ function App() {
   const [travelers, setTravelers] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [itinerary, setItinerary] = useState(null); // State for the itinerary
 
   const handleSubmit = async () => {
     if (!startLocation || !destination || !budget || !travelers || !startDate || !endDate) {
       alert("Please fill in all fields");
       return;
     }
-
+  
     try {
       const response = await axios.post("http://127.0.0.1:5000/plan_trip", {
         start_location: startLocation,
@@ -26,13 +27,40 @@ function App() {
         start_date: startDate,
         end_date: endDate,
       });
-
+  
       console.log("Trip planning successful:", response.data);
+  
+      // Extract and process the itinerary JSON string
+      const itineraryText = response.data?.data?.content?.[0]?.text;
+  
+      if (itineraryText) {
+        // Clean and fix the JSON string
+        const fixedItineraryText = itineraryText
+          .replace(/\[/g, '{') // Replace all '[' with '{'
+          .replace(/\]/g, '}') // Replace all ']' with '}'
+          .replace(/\\\"/g, '"') // Fix escaped quotes
+          .replace(/"{/g, '{') // Remove misplaced quotes
+          .replace(/}"/g, '}'); // Remove misplaced quotes
+  
+        const parsedItinerary = JSON.parse(`{${fixedItineraryText}}`); // Parse the cleaned string
+  
+        // Sort by Day to ensure chronological order
+        const sortedItinerary = Object.entries(parsedItinerary)
+          .sort(([keyA, valueA], [keyB, valueB]) => parseInt(valueA.Day, 10) - parseInt(valueB.Day, 10))
+          .reduce((acc, [key, value]) => {
+            acc[key] = value;
+            return acc;
+          }, {});
+  
+        setItinerary(sortedItinerary); // Save the sorted itinerary to state
+      } else {
+        alert("Failed to parse itinerary.");
+      }
     } catch (error) {
       console.error("Error planning trip:", error);
       alert("There was an error planning your trip. Please try again.");
     }
-  };
+  };  
 
   return (
     <>
@@ -177,6 +205,28 @@ function App() {
                   </motion.button>
                 </div>
               </div>
+
+              {/* Itinerary Display */}
+              {itinerary && (
+                <div className="bg-white rounded-xl shadow-md p-6 mt-8">
+                  <h2 className="text-lg font-bold mb-4 text-orange-500">Your Itinerary</h2>
+                  <div className="space-y-4">
+                    {Object.entries(itinerary).map(([key, details]) => (
+                      <div key={key} className="p-4 bg-orange-50 rounded-md shadow-sm">
+                        <p className="text-sm font-medium text-orange-800">
+                          Day {details["Day"]}, {details["Block"]}
+                        </p>
+                        <p className="text-lg font-semibold">{details["Activity"]}</p>
+                        <p className="text-sm text-gray-700">{details["Location"]}</p>
+                        <p className="text-sm text-gray-500">{details["Details"]}</p>
+                        <p className="text-sm text-gray-700">
+                          Time: {details["Time"]} | Cost: {details["Cost"]}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
